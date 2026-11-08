@@ -1,0 +1,2 @@
+Agregá aquí fotos JPG, JPEG, PNG o WEBP y volvé a compilar. Esta carpeta no se sincroniza con Google Fotos.
+No subas fotos familiares a un repositorio público: usá un repositorio privado o importalas desde la tele.

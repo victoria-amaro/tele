@@ -1,6 +1,6 @@
 # Amanda — pantalla tranquila para Android TV
 
-App nativa en Kotlin para la Panavox de Amanda. Se instala como una app más; no cambia el launcher ni la configuración de la tele. No contiene publicidad, analítica, inicio de sesión ni permisos de red.
+App nativa en Kotlin para la Panavox de Amanda. Se instala como una app más y ahora también puede elegirse como launcher, si el sistema lo permite. No cambia por sí sola el inicio ni la configuración de la tele. No contiene publicidad, analítica, inicio de sesión ni permisos de red.
 
 ## Qué incluye
 
@@ -25,7 +25,7 @@ App nativa en Kotlin para la Panavox de Amanda. Se instala como una app más; no
 
 Para un repositorio público, el enlace de descarga será:
 
-`https://github.com/TU_USUARIO/TU_REPOSITORIO/releases/latest/download/amanda-tv.apk`
+`https://github.com/victoria-amaro/tele/releases/latest/download/amanda-tv.apk`
 
 Un repositorio privado requiere autenticación para descargar; el enlace anterior no funciona como enlace público desde Downloader. No subas fotos familiares a un repositorio público: se incorporan al APK y también pueden quedar en el historial de Git. Para mantener las fotos privadas, importalas desde la tele o usá un repositorio privado con un método de instalación autenticado.
 
@@ -48,9 +48,9 @@ Fuentes: [Google TV: protector de pantalla](https://support.google.com/googletv/
 
 ## YouTube y SmartTube
 
-Si están instalados, el acceso de YouTube busca primero SmartTube estable, luego beta/F-Droid y finalmente YouTube oficial. Mantené OK para elegirlo manualmente. El acceso muestra el ícono real de la app que abre: con SmartTube aparecerá su ícono, no el logo de YouTube.
+Si están instalados, el acceso de YouTube busca primero SmartTube estable, luego beta/F-Droid y finalmente YouTube oficial. Si antes estaba guardado YouTube oficial y luego instalás SmartTube, ahora se prioriza SmartTube automáticamente. Mantené OK para elegir otro reproductor. El acceso muestra el ícono real de la app que abre: con SmartTube aparecerá su ícono, no el logo de YouTube.
 
-Amanda no instala SmartTube ni modifica YouTube. No bloquea anuncios de otra aplicación. Si solo está YouTube oficial, informa que puede mostrar anuncios. Las demás plataformas siguen requiriendo sus cuentas/suscripciones y pueden mostrar los anuncios de sus propios planes.
+Amanda no instala SmartTube ni modifica YouTube. No bloquea anuncios de otra aplicación. Si solo está YouTube oficial, pide confirmación cada vez antes de abrirlo y explica que puede mostrar anuncios. Las demás plataformas siguen requiriendo sus cuentas/suscripciones y pueden mostrar los anuncios de sus propios planes.
 
 SmartTube es un cliente no oficial: su reproducción y compatibilidad con esta Panavox todavía deben probarse. Si decidís instalarlo, usá únicamente sus [publicaciones oficiales](https://github.com/yuliskov/SmartTube/releases), comprobá los avisos actuales del mantenedor y elegí después la app desde Amanda. No se incluye ningún APK de terceros en este proyecto.
 
@@ -59,7 +59,7 @@ Referencias: [código de SmartTube y nombres de paquete](https://github.com/yuli
 ## Instalación y reversión en la tele
 
 - **Antes:** anotá las apps instaladas y tomá fotos de los ajustes actuales. Eso es un registro de configuración, no una copia completa del sistema.
-- **Cambio:** instalar Amanda agrega una app. No sustituye Inicio, no requiere root, ADB ni USB.
+- **Cambio:** instalar Amanda agrega una app. No sustituye Inicio sin que lo elijas. Instalarla no requiere root, ADB ni USB; cambiar el launcher en ciertos modelos puede requerir diagnóstico por ADB.
 - **Riesgo:** es una compilación de prueba; falta comprobarla en la Panavox. No cambies el launcher para probarla.
 - **Instalar:** transferí/descargá `amanda-tv.apk` por Wi-Fi. Si usás Downloader, habilitá temporalmente «Instalar apps desconocidas» solo para esa app e inhabilitalo después.
 - **Comprobar:** abrí Amanda y completá `PRUEBAS-EN-TV.md`.
@@ -87,4 +87,21 @@ El APK es **debug**, apropiado para esta prueba doméstica. Cada entorno nuevo p
 Para que las compilaciones futuras de Actions usen la misma clave, guardá el contenido Base64 de tu `debug.keystore` como secreto del repositorio **DEBUG_KEYSTORE_BASE64**. No subas el archivo de clave al repositorio ni pegues su contenido en chats. Si no configurás este secreto, las compilaciones igualmente funcionan, con la limitación anterior. Para distribuir públicamente debe prepararse una firma de producción.
 
 Se usa AndroidX ExifInterface 1.4.2 para leer la orientación de las fotos, siguiendo la recomendación de Android Lint: https://developer.android.com/jetpack/androidx/releases/exifinterface .
+
+
+## Amanda 1.2: inicio de la tele y lentitud
+
+Esta versión registra Amanda como aplicación HOME y agrega **Inicio y ajustes → Elegir pantalla de inicio**. Si Android ofrece su selector, elegí Amanda. Probá tanto el botón Inicio del control como un reinicio completo. La compatibilidad al encender o salir de espera depende del fabricante; no se garantiza en la Panavox hasta probarlo.
+
+**Preferencias del dispositivo → Pantalla de inicio** con opciones como «Personalizar canales», «Vista previa de videos», «Reorganizar apps» y «Android TV Home» es la personalización del launcher original, no un selector de launcher predeterminado. Abrir «Android TV Home» ahí puede mostrar información y licencias.
+
+Si no existe el selector de inicio, no desactives Android TV Home ni Servicios principales de Android TV. Primero hay que comprobar si la tele ofrece depuración inalámbrica y obtener la información del launcher actual. No se ejecutan scripts para quitar paquetes, no se usa accesibilidad para interceptar Inicio y no se agregan servicios de arranque que Android pueda bloquear.
+
+**Reversión del inicio:** desde el selector del sistema volvé a elegir Android TV Home o Google TV. Si se usó otro método, registrá antes el componente anterior y conservá su procedimiento de reversión. Esta versión no desactiva paquetes.
+
+**Lentitud:** antes de quitar apps, anotá el espacio libre y observá si la lentitud ocurre en toda la tele o solo dentro de una app. Desactivar las vistas previas de video/audio reduce la reproducción automática del launcher, pero no garantiza resolver el problema. Reiniciá desde Ajustes → Sistema → Reiniciar y comprobá si mejora. Revisá las apps instaladas y quitá solo las apps de usuario que realmente no se usan, conservando sus datos importantes. No borres datos de cuentas ni componentes del sistema. No se incluye una lista genérica de paquetes a desactivar: falta inventariar esta Panavox.
+
+**Firma:** se configuró `DEBUG_KEYSTORE_BASE64` como secreto cifrado del repositorio con autorización de su propietaria. Las versiones nuevas usan una firma de prueba estable. La primera versión publicada usó una firma temporal distinta: actualizar esa instalación puede fallar. Antes de desinstalar, conservá los originales de las fotos importadas y anotá los accesos elegidos; desinstalar borra esas copias y preferencias.
+
+Referencias: [categoría HOME de Android](https://developer.android.com/reference/android/content/Intent#CATEGORY_HOME), [ajustes de inicio](https://developer.android.com/reference/android/provider/Settings#ACTION_HOME_SETTINGS), [diagnóstico de lentitud de Google TV](https://support.google.com/googletv/answer/12364830?hl=es).
 

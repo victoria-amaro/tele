@@ -47,6 +47,7 @@ class MainActivity : Activity() {
     private var fullPhoto: ImageView? = null
     private var photoDialog: AlertDialog? = null
     private var pendingImport = 0
+    private var appSnapshotKey = ""
     private val ticker = object : Runnable {
         override fun run() {
             if (!active) return
@@ -61,7 +62,9 @@ class MainActivity : Activity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         items = JSONArray(assets.open("devocional.json").bufferedReader().use { it.readText() })
         photos = PhotoStore(this)
-        setContentView(buildUi())
+        val apps = installed()
+        appSnapshotKey = appsKey(apps)
+        setContentView(buildUi(apps))
     }
 
     private fun text(value: String, size: Float, serif: Boolean = false, bold: Boolean = false) = TextView(this).apply {
@@ -89,7 +92,7 @@ class MainActivity : Activity() {
         view.setOnClickListener { onClick() }
     }
 
-    private fun buildUi(): View {
+    private fun buildUi(availableApps: List<ResolveInfo>): View {
         val design = FrameLayout(this).apply { setBackgroundColor(cream) }
         clock = text("", 140f, bold = true)
         date = text("", 42f)
@@ -98,6 +101,9 @@ class MainActivity : Activity() {
         place(design, ImageView(this).apply { setImageResource(R.drawable.flowers); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }, 1730, 24, 140, 140)
         place(design, text("Bienvenida, Amanda", 58f, serif = true), 1000, 90, 730, 90)
         place(design, View(this).apply { setBackgroundColor(gold) }, 1210, 186, 500, 3)
+        val settings = text("Inicio y ajustes", 30f, bold = true).apply { gravity = Gravity.CENTER }
+        focusable(settings) { settingsMenu() }
+        place(design, settings, 1510, 208, 346, 54)
 
         val devotional = FrameLayout(this)
         focusable(devotional) { showDevotional() }
@@ -129,7 +135,7 @@ class MainActivity : Activity() {
         val labels = listOf("TV", "YouTube", "Disney+", "Netflix", "Prime Video", "HBO Max")
         val tiles = labels.mapIndexed { index, label ->
             val tile = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setPadding(18, 14, 18, 14) }
-            val target = findTarget(label)
+            val target = findTarget(label, availableApps)
             if (label == "TV") {
                 tile.addView(text("▣", 76f).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, 92))
             } else if (target != null) {
@@ -163,6 +169,8 @@ class MainActivity : Activity() {
         devotional.nextFocusRightId = photoFrame.id
         photoFrame.nextFocusLeftId = devotional.id
         photoFrame.nextFocusDownId = tiles[2].id
+        photoFrame.nextFocusUpId = settings.id
+        settings.nextFocusDownId = photoFrame.id
         place(design, text("Flechas para elegir · OK para abrir · Mantené OK para cambiar una app", 27f).apply { gravity = Gravity.CENTER }, 64, 1020, 1792, 42)
         tiles[0].requestFocus()
         return DesignSurface(this, design)
@@ -170,14 +178,45 @@ class MainActivity : Activity() {
 
     private fun installed(): List<ResolveInfo> = packageManager.queryIntentActivities(
         Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER), 0
-    ).sortedBy { it.loadLabel(packageManager).toString().lowercase() }
+    ).filter { it.activityInfo.packageName != packageName }
+        .sortedBy { it.loadLabel(packageManager).toString().lowercase() }
 
-    private fun findTarget(label: String): ResolveInfo? {
-        val all = installed()
+    private fun settingsMenu() {
+        AlertDialog.Builder(this).setTitle("Inicio y ajustes")
+            .setItems(arrayOf("Elegir pantalla de inicio", "Aplicaciones instaladas y almacenamiento", "Elegir reproductor de YouTube", "Google Fotos: protector de la tele")) { _, index ->
+                when (index) {
+                    0 -> chooseHome()
+                    1 -> try { startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_SETTINGS)) }
+                        catch (_: Exception) { toast("Abrí Ajustes de la tele → Aplicaciones") }
+                    2 -> chooseApp("YouTube")
+                    3 -> openAmbientSettings()
+                }
+            }.setNegativeButton("Volver", null).show()
+    }
+
+    private fun chooseHome() {
+        AlertDialog.Builder(this).setTitle("Usar Amanda como inicio")
+            .setMessage("En la pantalla siguiente, elegí Amanda como aplicación de inicio. Algunos televisores no ofrecen este selector. Si no aparece, no desactives Android TV Home: hace falta revisar el método compatible con tu tele. Para volver atrás, elegí Android TV Home o Google TV en ese mismo selector.")
+            .setPositiveButton("Elegir inicio") { _, _ ->
+                try { startActivity(Intent(android.provider.Settings.ACTION_HOME_SETTINGS)) }
+                catch (_: Exception) {
+                    AlertDialog.Builder(this).setTitle("Esta tele no ofrece el selector de inicio")
+                        .setMessage("Amanda está preparada como launcher, pero el fabricante no permite elegirlo desde esta pantalla. Volvé a la guía del proyecto para continuar con el diagnóstico. No se cambió ni se desactivó el inicio actual.")
+                        .setPositiveButton("Entendido", null).show()
+                }
+            }.setNegativeButton("Volver", null).show()
+    }
+
+    private fun appsKey(apps: List<ResolveInfo>) = apps.joinToString("|") { "${it.activityInfo.packageName}/${it.activityInfo.name}" }
+
+    private fun findTarget(label: String, all: List<ResolveInfo> = installed()): ResolveInfo? {
         val saved = prefs.getString(label, null)
+        if (label == "YouTube") {
+            val preferred = YouTubeChoice.preferred(all.map { it.activityInfo.packageName }.toSet(), saved?.substringBefore('/'))
+            return all.firstOrNull { it.activityInfo.packageName == preferred }
+        }
         if (saved != null) return all.firstOrNull { "${it.activityInfo.packageName}/${it.activityInfo.name}" == saved }
         val packages = when (label) {
-            "YouTube" -> listOf("org.smarttube.stable", "org.smarttube.beta", "app.smarttube.fdroid", "com.teamsmart.videomanager.tv", "com.google.android.youtube.tv")
             "Disney+" -> listOf("com.disney.disneyplus")
             "Netflix" -> listOf("com.netflix.ninja", "com.netflix.mediaclient")
             "Prime Video" -> listOf("com.amazon.amazonvideo.livingroom", "com.amazon.avod.thirdpartyclient")
@@ -212,10 +251,10 @@ class MainActivity : Activity() {
                     .setClassName(target.activityInfo.packageName, target.activityInfo.name))
             } catch (_: Exception) { toast("No se pudo abrir $label. Mantené OK para elegir otra app.") }
         }
-        if (label == "YouTube" && target.activityInfo.packageName == "com.google.android.youtube.tv" && !prefs.getBoolean("youtubeNotice", false)) {
+        if (label == "YouTube" && target.activityInfo.packageName == YouTubeChoice.OFFICIAL) {
             AlertDialog.Builder(this).setTitle("YouTube oficial")
-                .setMessage("Está seleccionada la app oficial, que puede mostrar anuncios. Si instalás SmartTube, mantené OK sobre este acceso para elegirlo.")
-                .setPositiveButton("Abrir") { _, _ -> prefs.edit().putBoolean("youtubeNotice", true).apply(); open() }
+                .setMessage("Se abrirá YouTube oficial, que puede mostrar anuncios. Amanda no bloquea esa publicidad. Para usar SmartTube hay que instalarlo por separado desde su proyecto oficial y volver a abrir Amanda.")
+                .setPositiveButton("Abrir oficial") { _, _ -> open() }
                 .setNegativeButton("Cancelar", null).show()
         } else open()
     }
@@ -336,7 +375,15 @@ class MainActivity : Activity() {
 
     private fun toast(message: String) = Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     override fun onResume() {
-        super.onResume(); active = true; handler.removeCallbacks(ticker); handler.post(ticker)
+        super.onResume()
+        val apps = installed()
+        val newKey = appsKey(apps)
+        if (newKey != appSnapshotKey) {
+            appSnapshotKey = newKey
+            setContentView(buildUi(apps))
+            lastPhotoAt = 0L
+        }
+        active = true; handler.removeCallbacks(ticker); handler.post(ticker)
     }
     override fun onPause() { active = false; handler.removeCallbacks(ticker); super.onPause() }
     override fun onDestroy() {

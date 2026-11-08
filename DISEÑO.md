@@ -7,3 +7,5 @@ Se adapta una superficie de diseño 1920×1080 al tamaño de pantalla manteniend
 Sin fotos, se muestra un paisaje vectorial neutral con instrucciones. El protector nativo del sistema se configura por separado para Google Fotos; no hay OAuth ni sincronización de esos álbumes dentro del recuadro. No se modifica el launcher ni se instala software en la tele desde este proyecto.
 
 Criterios de aceptación: compilar APK; pasar pruebas de fecha/día Uruguay; pasar Android Lint sin errores; conservar los seis accesos aunque falten apps; rechazar fotos inválidas o mayores de 15 MB; ofrecer ruta manual si no existe selector o ajustes de protector. La prueba física con control remoto sigue en PRUEBAS-EN-TV.md.
+
+Actualización 1.2: se agrega el botón secundario «Inicio y ajustes» y la capacidad de ser elegido como launcher HOME, sin cambiar automáticamente la aplicación predeterminada ni desactivar el launcher original. El acceso de YouTube prioriza SmartTube al instalarlo después y solicita confirmación cada vez que abre la app oficial.

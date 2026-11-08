@@ -21,3 +21,14 @@ Pendiente hasta ejecutarla físicamente. Compilar no demuestra compatibilidad co
 - [ ] Sin internet: reloj, devocional y fotos copiadas siguen disponibles; las apps de streaming dependen de su conexión.
 - [ ] Dejar funcionando 30 minutos: sin bloqueos ni consumo desmedido. Volver de otras apps actualiza fecha y hora.
 - [ ] Desinstalar Amanda deja el inicio original y las otras apps funcionando.
+
+## Actualización 1.2
+
+- [ ] Inicio y ajustes se puede alcanzar con las flechas y volver al recuadro de fotos.
+- [ ] Elegir pantalla de inicio abre el selector del sistema o explica que no está disponible, sin cambiar el launcher original automáticamente.
+- [ ] Si se puede elegir Amanda, probar Inicio, salir de una app, reinicio completo y salida de espera. Registrar cualquier caso que vuelva a Google TV.
+- [ ] Volver a elegir Google TV/Android TV Home desde el selector restaura el inicio anterior.
+- [ ] Instalar SmartTube después de haber seleccionado YouTube oficial: al volver a Amanda se actualiza el acceso y abre SmartTube.
+- [ ] Sin SmartTube, cada intento de abrir YouTube oficial pide confirmación y advierte sobre anuncios.
+- [ ] El selector de apps no permite elegir Amanda como destino de sus propios botones.
+- [ ] Comparar la respuesta de la tele antes y después de desactivar vistas previas, y registrar espacio libre. No atribuir mejoras sin comprobarlas.

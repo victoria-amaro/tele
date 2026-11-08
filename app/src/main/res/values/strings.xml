@@ -1,0 +1,4 @@
+<resources>
+    <string name="home_switch_label">Regreso a Amanda</string>
+    <string name="home_switch_description">Opcional: detecta solo la ventana principal de Android TV Home y vuelve a Amanda. No lee el contenido de la pantalla ni controla botones. Permite visitar Google TV desde Amanda. Se puede desactivar en cualquier momento.</string>
+</resources>

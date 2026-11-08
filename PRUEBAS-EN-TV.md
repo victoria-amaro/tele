@@ -32,3 +32,20 @@ Pendiente hasta ejecutarla físicamente. Compilar no demuestra compatibilidad co
 - [ ] Sin SmartTube, cada intento de abrir YouTube oficial pide confirmación y advierte sobre anuncios.
 - [ ] El selector de apps no permite elegir Amanda como destino de sus propios botones.
 - [ ] Comparar la respuesta de la tele antes y después de desactivar vistas previas, y registrar espacio libre. No atribuir mejoras sin comprobarlas.
+
+## Actualización 1.3
+
+- [ ] La tuerca se ve y OK abre Ajustes generales de la tele directamente.
+- [ ] Desde cada tarjeta se llega a ambos botones superiores con las flechas; el foco sigue visible.
+- [ ] Inicio Google TV explica cómo habilitar Android TV Home si está desactivado.
+- [ ] Con Android TV Home habilitado, el botón abre el inicio original.
+- [ ] Instalar/actualizar no habilita el servicio de accesibilidad automáticamente.
+- [ ] Tras consentimiento y habilitación de Regreso a Amanda: modo automático vuelve a Amanda desde la actividad principal original.
+- [ ] Visitar Google TV desde el botón no provoca un regreso inmediato ni un bucle. Abrir Amanda desde su icono termina la visita al inicio normal.
+- [ ] Ajustes, streaming y protector no son interrumpidos por el ayudante.
+- [ ] Elegir Google TV habitual permite mantener el inicio original. Desactivar el servicio revierte la ayuda automática.
+- [ ] Verificar un arranque completo antes de dar por válido el nuevo modo con ambos launchers habilitados.
+- [ ] Dejar la tele inactiva hasta su tiempo configurado y comprobar el protector existente sin borrar sus datos o álbumes.
+- [ ] Con recuadro sin fotos locales: OK abre el protector nativo a pantalla completa, usando el álbum privado configurado. Atrás o el control permiten regresar.
+- [ ] Configurar protector abre AmbientActivity en la Panavox; no depende del acceso DREAM_SETTINGS inexistente en este modelo.
+- [ ] No se solicita compartir álbumes por enlace, no se copian fotos del sistema y no aparece permiso de internet en Amanda.

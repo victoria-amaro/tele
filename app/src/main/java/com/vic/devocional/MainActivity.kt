@@ -29,6 +29,7 @@ class MainActivity : Activity() {
     private val handler = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     private val prefs by lazy { getSharedPreferences("amanda", MODE_PRIVATE) }
+    private val homeNavigation by lazy { HomeNavigation(this) }
     private lateinit var clock: TextView
     private lateinit var date: TextView
     private lateinit var verse: TextView
@@ -59,6 +60,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         items = JSONArray(assets.open("devocional.json").bufferedReader().use { it.readText() })
         photos = PhotoStore(this)
@@ -101,9 +103,19 @@ class MainActivity : Activity() {
         place(design, ImageView(this).apply { setImageResource(R.drawable.flowers); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }, 1730, 24, 140, 140)
         place(design, text("Bienvenida, Amanda", 58f, serif = true), 1000, 90, 730, 90)
         place(design, View(this).apply { setBackgroundColor(gold) }, 1210, 186, 500, 3)
-        val settings = text("Inicio y ajustes", 30f, bold = true).apply { gravity = Gravity.CENTER }
-        focusable(settings) { settingsMenu() }
-        place(design, settings, 1510, 208, 346, 54)
+        val stockHome = text("Inicio Google TV", 32f, bold = true).apply { gravity = Gravity.CENTER }
+        focusable(stockHome) { homeNavigation.openStock() }
+        stockHome.setOnLongClickListener { homeNavigation.chooseMode(); true }
+        place(design, stockHome, 1000, 202, 480, 64)
+        val settings = text("⚙  Ajustes", 36f, bold = true).apply {
+            gravity = Gravity.CENTER
+            contentDescription = "Configuración de la tele. OK para abrir; mantener OK para opciones de Amanda"
+        }
+        focusable(settings) { homeNavigation.openSettings() }
+        settings.setOnLongClickListener { settingsMenu(); true }
+        place(design, settings, 1500, 202, 356, 64)
+        stockHome.nextFocusRightId = settings.id
+        settings.nextFocusLeftId = stockHome.id
 
         val devotional = FrameLayout(this)
         focusable(devotional) { showDevotional() }
@@ -120,13 +132,14 @@ class MainActivity : Activity() {
         place(devotional, reflection, 32, 398, 596, 116)
 
         photoFrame = FrameLayout(this)
-        focusable(photoFrame) { photoMenu() }
-        photoFrame.contentDescription = "Fotos de la familia. OK para ver opciones"
+        focusable(photoFrame) { if (photos.sources().isEmpty()) openNativePhotos() else photoMenu() }
+        photoFrame.setOnLongClickListener { photoMenu(); true }
+        photoFrame.contentDescription = "Google Fotos privado. OK abre el protector a pantalla completa; mantener OK abre opciones"
         photoFrame.clipToOutline = true
         place(design, photoFrame, 748, 280, 1108, 520)
         photo = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP; contentDescription = "Foto familiar" }
         place(photoFrame, photo, 8, 8, 1092, 504)
-        photoHint = text("Nuestra familia\nOK para agregar fotos", 44f, bold = true).apply {
+        photoHint = text("Google Fotos · Álbum privado\nOK para ver a pantalla completa", 40f, bold = true).apply {
             gravity = Gravity.CENTER; setPadding(36, 16, 36, 16)
             setBackgroundColor(Color.argb(160, 255, 249, 238))
         }
@@ -170,7 +183,9 @@ class MainActivity : Activity() {
         photoFrame.nextFocusLeftId = devotional.id
         photoFrame.nextFocusDownId = tiles[2].id
         photoFrame.nextFocusUpId = settings.id
+        devotional.nextFocusUpId = stockHome.id
         settings.nextFocusDownId = photoFrame.id
+        stockHome.nextFocusDownId = photoFrame.id
         place(design, text("Flechas para elegir · OK para abrir · Mantené OK para cambiar una app", 27f).apply { gravity = Gravity.CENTER }, 64, 1020, 1792, 42)
         tiles[0].requestFocus()
         return DesignSurface(this, design)
@@ -183,26 +198,13 @@ class MainActivity : Activity() {
 
     private fun settingsMenu() {
         AlertDialog.Builder(this).setTitle("Inicio y ajustes")
-            .setItems(arrayOf("Elegir pantalla de inicio", "Aplicaciones instaladas y almacenamiento", "Elegir reproductor de YouTube", "Google Fotos: protector de la tele")) { _, index ->
+            .setItems(arrayOf("Tipo de inicio", "Aplicaciones instaladas y almacenamiento", "Elegir reproductor de YouTube", "Google Fotos: protector de la tele")) { _, index ->
                 when (index) {
-                    0 -> chooseHome()
+                    0 -> homeNavigation.chooseMode()
                     1 -> try { startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_SETTINGS)) }
                         catch (_: Exception) { toast("Abrí Ajustes de la tele → Aplicaciones") }
                     2 -> chooseApp("YouTube")
                     3 -> openAmbientSettings()
-                }
-            }.setNegativeButton("Volver", null).show()
-    }
-
-    private fun chooseHome() {
-        AlertDialog.Builder(this).setTitle("Usar Amanda como inicio")
-            .setMessage("En la pantalla siguiente, elegí Amanda como aplicación de inicio. Algunos televisores no ofrecen este selector. Si no aparece, no desactives Android TV Home: hace falta revisar el método compatible con tu tele. Para volver atrás, elegí Android TV Home o Google TV en ese mismo selector.")
-            .setPositiveButton("Elegir inicio") { _, _ ->
-                try { startActivity(Intent(android.provider.Settings.ACTION_HOME_SETTINGS)) }
-                catch (_: Exception) {
-                    AlertDialog.Builder(this).setTitle("Esta tele no ofrece el selector de inicio")
-                        .setMessage("Amanda está preparada como launcher, pero el fabricante no permite elegirlo desde esta pantalla. Volvé a la guía del proyecto para continuar con el diagnóstico. No se cambió ni se desactivó el inicio actual.")
-                        .setPositiveButton("Entendido", null).show()
                 }
             }.setNegativeButton("Volver", null).show()
     }
@@ -293,13 +295,23 @@ class MainActivity : Activity() {
     }
 
     private fun openAmbientSettings() {
-        try {
-            startActivity(Intent(android.provider.Settings.ACTION_DREAM_SETTINGS))
-        } catch (_: Exception) {
-            AlertDialog.Builder(this).setTitle("Protector de la tele")
-                .setMessage("Buscá en Ajustes de la tele → Sistema → Modo ambiente o Protector de pantalla → Google Fotos. El nombre y la disponibilidad dependen de tu Panavox. Esta app no cambia esos ajustes ni accede a las fotos de tu cuenta.")
-                .setPositiveButton("Entendido", null).show()
+        // This Panavox exposes AmbientActivity instead of Android's standard dream settings.
+        val candidates = listOf(
+            Intent("com.google.android.tv.settings.ambient").setPackage("com.android.tv.settings"),
+            Intent(android.provider.Settings.ACTION_DREAM_SETTINGS)
+        )
+        for (intent in candidates) {
+            try { startActivity(intent); return } catch (_: Exception) { /* Try the supported fallback. */ }
         }
+        homeNavigation.openSettings()
+        toast("Buscá Modo ambiente o Protector de pantalla en los ajustes de la tele")
+    }
+
+    private fun openNativePhotos() {
+        // Public, exported activity verified on the Panavox. The system owns the private album.
+        try {
+            startActivity(Intent("com.google.android.pano.action.SLEEP").setPackage("com.android.tv.settings"))
+        } catch (_: Exception) { openAmbientSettings() }
     }
     private fun fullscreenPhotos() {
         if (photos.sources().isEmpty()) { importPhotos(); return }
@@ -355,7 +367,7 @@ class MainActivity : Activity() {
         val sources = photos.sources()
         if (sources.isEmpty()) {
             photo.setImageResource(R.drawable.photo_empty); fullPhoto?.setImageDrawable(null)
-            photoHint.text = "Nuestra familia\nOK para agregar fotos"
+            photoHint.text = "Google Fotos · Álbum privado\nOK para ver a pantalla completa"
             return
         }
         val source = sources[Math.floorMod(photoIndex++, sources.size)]
@@ -376,6 +388,8 @@ class MainActivity : Activity() {
     private fun toast(message: String) = Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     override fun onResume() {
         super.onResume()
+        prefs.edit().putBoolean("browsing_stock", false).apply()
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val apps = installed()
         val newKey = appsKey(apps)
         if (newKey != appSnapshotKey) {

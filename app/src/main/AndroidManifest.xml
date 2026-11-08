@@ -15,6 +15,7 @@
         <package android:name="com.google.android.youtube.tv" />
         <package android:name="com.netflix.ninja" />
         <package android:name="com.disney.disneyplus" />
+        <package android:name="com.google.android.tvlauncher" />
     </queries>
 
     <application
@@ -23,6 +24,14 @@
         android:banner="@drawable/banner"
         android:label="Amanda"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <service android:name=".HomeSwitchService" android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:label="@string/home_switch_label">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/home_switch_service" />
+        </service>
         <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="landscape" android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

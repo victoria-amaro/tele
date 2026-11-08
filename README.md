@@ -95,7 +95,7 @@ Esta versión registra Amanda como aplicación HOME y agrega **Inicio y ajustes 
 
 **Preferencias del dispositivo → Pantalla de inicio** con opciones como «Personalizar canales», «Vista previa de videos», «Reorganizar apps» y «Android TV Home» es la personalización del launcher original, no un selector de launcher predeterminado. Abrir «Android TV Home» ahí puede mostrar información y licencias.
 
-Si no existe el selector de inicio, no desactives Android TV Home ni Servicios principales de Android TV. Primero hay que comprobar si la tele ofrece depuración inalámbrica y obtener la información del launcher actual. No se ejecutan scripts para quitar paquetes, no se usa accesibilidad para interceptar Inicio y no se agregan servicios de arranque que Android pueda bloquear.
+Si no existe el selector de inicio, no desactives Android TV Home ni Servicios principales de Android TV. Primero hay que comprobar si la tele ofrece depuración inalámbrica y obtener la información del launcher actual. No se ejecutan scripts para quitar paquetes, el regreso mediante accesibilidad de la versión 1.3 es opcional y requiere habilitación explícita y no se agregan servicios de arranque que Android pueda bloquear.
 
 **Reversión del inicio:** desde el selector del sistema volvé a elegir Android TV Home o Google TV. Si se usó otro método, registrá antes el componente anterior y conservá su procedimiento de reversión. Esta versión no desactiva paquetes.
 
@@ -104,4 +104,43 @@ Si no existe el selector de inicio, no desactives Android TV Home ni Servicios p
 **Firma:** se configuró `DEBUG_KEYSTORE_BASE64` como secreto cifrado del repositorio con autorización de su propietaria. Las versiones nuevas usan una firma de prueba estable. La primera versión publicada usó una firma temporal distinta: actualizar esa instalación puede fallar. Antes de desinstalar, conservá los originales de las fotos importadas y anotá los accesos elegidos; desinstalar borra esas copias y preferencias.
 
 Referencias: [categoría HOME de Android](https://developer.android.com/reference/android/content/Intent#CATEGORY_HOME), [ajustes de inicio](https://developer.android.com/reference/android/provider/Settings#ACTION_HOME_SETTINGS), [diagnóstico de lentitud de Google TV](https://support.google.com/googletv/answer/12364830?hl=es).
+
+
+## Amanda 1.3: ajustes visibles y dos inicios
+
+- **⚙ Ajustes** abre directamente la configuración general de la tele. Mantené OK sobre este botón para abrir las opciones de Amanda (tipo de inicio, apps, reproductor y protector).
+- **Inicio Google TV** abre el launcher original. Requiere que Android TV Home esté habilitado; si está desactivado, muestra una explicación y abre su ficha para habilitarlo. La app no puede habilitar por sí sola un paquete del sistema.
+- Mantené OK sobre Inicio Google TV para elegir el **Tipo de inicio**: Amanda automática o Google TV habitual.
+- La navegación con flechas une los dos botones con el devocional y las fotos.
+
+**Si Amanda es el único inicio habilitado, no la desinstales antes de habilitar Android TV Home.** Actualizar un APK con la misma firma conserva los datos. La versión 1.3 usa la firma estable ya configurada.
+
+### Regreso automático opcional
+
+En esta Panavox, Android TV Home tiene prioridad mayor que Amanda. Para mantener los dos habilitados y seguir mostrando Amanda al encender, se incluye el servicio opcional **Regreso a Amanda**. No se habilita automáticamente al instalar la app.
+
+Primero explicá su funcionamiento y pedí autorización. Luego, en Tipo de inicio → Configurar regreso automático a Amanda, se abre Ajustes → Accesibilidad. El sistema muestra su aviso general y el usuario decide si habilitar el servicio. Una app instalada por fuera de Play Store puede requerir habilitar ajustes restringidos en su ficha; no se presupone que el fabricante ofrezca esa opción.
+
+La configuración limita los eventos a cambios de ventana de `com.google.android.tvlauncher`. El código solo compara paquete y nombre de la actividad principal: no recupera el árbol de pantalla, no lee textos, fotos ni contraseñas, no filtra teclas, no pulsa controles y no usa internet. Se declara expresamente que no es una herramienta de accesibilidad para discapacidades.
+
+Al detectar la pantalla principal de Google TV en modo automático abre Amanda. Al pulsar Inicio Google TV desde Amanda, deja visible el inicio normal hasta que abras Amanda otra vez. No intercepta Netflix, SmartTube, Ajustes ni el protector. Puede verse brevemente la pantalla original antes del regreso. Hay que probar este mecanismo en la Panavox antes de afirmar que funciona al encender.
+
+Para revertir: elegir Google TV como inicio habitual, mantener Android TV Home habilitado y desactivar Regreso a Amanda en Accesibilidad. También podés dejar el servicio desactivado permanentemente y usar Amanda como una app normal.
+
+### Fotos del protector y fotos de Amanda
+
+Son dos presentaciones diferentes. Los álbumes elegidos para el protector de Google no se importan al recuadro de Amanda. Esta versión permite abrir los ajustes del protector y no mantiene la pantalla encendida por la fuerza. Se verificó en esta Panavox que el protector está habilitado, usa com.google.android.backdrop/.Backdrop y tiene un tiempo de espera de cinco minutos. No se cambió ni se borró el álbum.
+
+Referencias técnicas: [servicios de accesibilidad](https://developer.android.com/guide/topics/ui/accessibility/service), [modo ambiente y pantalla encendida](https://developer.android.com/training/tv/playback/ambient-mode).
+
+
+### Google Fotos privado: acceso nativo verificado en la Panavox
+
+La usuaria eligió conservar privado su álbum y rechazó compartirlo mediante enlace. No se creó una conexión web, no se agregó permiso INTERNET y no se copiaron fotos de Google al recuadro.
+
+Sin fotos locales cargadas, el recuadro muestra **Google Fotos · Álbum privado / OK para ver a pantalla completa**. Al pulsar OK envía la acción `com.google.android.pano.action.SLEEP` al paquete de ajustes de la tele. Esa actividad es pública/exportada en esta Panavox y abre el protector nativo ya configurado. Las imágenes permanecen bajo control del sistema de Google; Amanda no recibe sus archivos ni sus credenciales. Es una presentación a pantalla completa, no fotos incrustadas dentro del recuadro.
+
+Para configurar el protector se usa la acción observada `com.google.android.tv.settings.ambient`, con alternativa a `android.settings.DREAM_SETTINGS` y después los ajustes generales. Esta Panavox no resuelve los accesos estándar DREAM_SETTINGS ni DISPLAY_SETTINGS, por eso se agregó el acceso específico comprobado. En otros modelos puede variar.
+
+Mantener OK sobre el recuadro conserva las opciones para fotos locales y configuración del protector. Al usar Google Fotos privado, no hay necesidad de añadir fotos al repositorio.
 

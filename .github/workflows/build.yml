@@ -8,16 +8,19 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+          log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
@@ -42,3 +45,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "amanda-${{ github.run_number }}-${{ github.run_attempt }}" amanda-tv.apk --target "$GITHUB_SHA" --latest --title "Amanda ${{ github.run_number }}" --notes "Compilación de prueba. Ver README para instalación, fotos y límites."
+

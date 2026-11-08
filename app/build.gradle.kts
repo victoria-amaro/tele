@@ -18,6 +18,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+    // CI receives the authorized key at an explicit path, independent of SDK defaults.
+    System.getenv("AMANDA_KEYSTORE_PATH")?.let { keyPath ->
+        signingConfigs.getByName("debug") { storeFile = file(keyPath) }
+    }
 }
 
 dependencies {
